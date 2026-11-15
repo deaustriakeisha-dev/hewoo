@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SURVIVE A DAY AS SEBI: ETIVAC EDITION</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: background 0.9s ease;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        /* Dynamic Time of Day Skies */
+        .sky-morning { background: linear-gradient(160deg, #38bdf8 0%, #7dd3fc 50%, #fef08a 100%); }
+        .sky-noon { background: linear-gradient(160deg, #0284c7 0%, #38bdf8 55%, #fde047 100%); }
+        .sky-afternoon { background: linear-gradient(160deg, #ea580c 0%, #fbbf24 60%, #fef3c7 100%); }
+        .sky-sunset { background: linear-gradient(160deg, #4c1d95 0%, #be185d 50%, #f97316 100%); }
+        .sky-night { background: linear-gradient(160deg, #090d16 0%, #1e1b4b 55%, #312e81 100%); }
+        .sky-gameover { background: linear-gradient(160deg, #180404 0%, #450a0a 55%, #7f1d1d 100%); }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 2px solid rgba(255, 255, 255, 0.95);
+            box-shadow: 0 14px 36px -6px rgba(15, 23, 42, 0.22);
+        }
+
+        .choice-btn {
+            transition: all 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 0 rgba(15, 23, 42, 0.16);
+        }
+        .choice-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 rgba(15, 23, 42, 0.2);
+        }
+        .choice-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 rgba(15, 23, 42, 0.16);
+        }
+        .choice-btn:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        /* Screen Shake & Drunk Blur Effects */
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            15% { transform: translate(-8px, 4px) rotate(-1deg); }
+            30% { transform: translate(8px, -4px) rotate(1deg); }
+            45% { transform: translate(-6px, -3px) rotate(-0.8deg); }
+            60% { transform: translate(6px, 3px) rotate(0.8deg); }
+            75% { transform: translate(-4px, 2px) rotate(-0.4deg); }
+        }
+        .shake-active {
+            animation: screenShake 0.45s ease-in-out;
+        }
+
+        @keyframes drunkWobble {
+            0%, 100% { transform: rotate(-1.4deg) scale(1.01); filter: blur(0px); }
+            50% { transform: rotate(1.4deg) scale(1.02); filter: blur(0.6px); }
+        }
+        .drunk-effect {
+            animation: drunkWobble 1.8s ease-in-out infinite;
+        }
+
+        /* Avatar Animations */
+        @keyframes idleFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+        }
+        @keyframes tipsySway {
+            0%, 100% { transform: rotate(-4deg) translateX(-3px); }
+            50% { transform: rotate(4deg) translateX(3px); }
+        }
+        .anim-idle { animation: idleFloat 2.8s ease-in-out infinite; }
+        .anim-tipsy { animation: tipsySway 1.5s ease-in-out infinite; }
+
+        /* Floating Stat Popups */
+        @keyframes floatPopup {
+            0% { opacity: 0; transform: translateY(12px) scale(0.85); }
+            20% { opacity: 1; transform: translateY(0px) scale(1.05); }
+            85% { opacity: 1; transform: translateY(-38px) scale(1); }
+            100% { opacity: 0; transform: translateY(-55px) scale(0.95); }
+        }
+        .stat-popup {
+            position: fixed;
+            z-index: 60;
+            pointer-events: none;
+            animation: floatPopup 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        /* Red Damage Vignette */
+        @keyframes redFlash {
+            0% { opacity: 0.75; }
+            100% { opacity: 0; }
+        }
+        .damage-flash {
+            animation: redFlash 0.65s ease-out forwards;
+        }
+
+        /* Low Signal Static Scanlines */
+        .static-overlay {
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.14),
+                rgba(0, 0, 0, 0.14) 2px,
+                transparent 2px,
+                transparent 4px
+            );
+        }
+
+        .stat-fill {
+            transition: width 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease;
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.95) translateY(8px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .pop-in { animation: popIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    </style>
+</head>
+<body class="sky-morning min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800">
+
+    <!-- Red Damage Vignette Overlay -->
+    <div id="damage-overlay" class="fixed inset-0 pointer-events-none bg-rose-600/45 border-[12px] border-rose-600 opacity-0 z-50"></div>
+
+    <!-- Floating Popups & Confetti Container -->
+    <div id="fx-container" class="fixed inset-0 pointer-events-none overflow-hidden z-50"></div>
+
+    <!-- TOP HUD BAR -->
+    <header id="hud-bar" class="hidden w-full max-w-2xl glass-panel rounded-2xl p-3 sm:p-3.5 z-30 mb-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-200">
+            <div class="flex items-center gap-2">
+                <span id="hud-time-badge" class="bg-slate-900 text-amber-300 font-display font-bold text-xs px-2.5 py-1 rounded-lg">
+                    ⏰ 7:15 AM
+                </span>
+                <span id="hud-location" class="text-xs sm:text-sm font-extrabold text-slate-700 truncate max-w-[165px] sm:max-w-xs">
+                    📍 GMA, Cavite
+                </span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span id="hud-player-tag" class="bg-indigo-100 text-indigo-800 font-extrabold text-xs px-2.5 py-1 rounded-lg">
+                    👤 Sebi
+                </span>
+                <span id="hud-score-badge" class="bg-amber-100 text-amber-800 border border-amber-300 font-display font-bold text-xs px-2.5 py-1 rounded-lg">
+                    🏆 0 pts
+                </span>
+                <button onclick="toggleAudio()" class="bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 px-2 py-1 rounded-lg border border-slate-200 text-xs font-bold" title="Toggle Sound">
+                    <span id="audio-icon">🔊</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 4 Tight Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- Energy -->
+            <div class="bg-white/80 rounded-xl p-2 border border-slate-200">
+                <div class="flex justify-between items-center text-[11px] font-extrabold mb-1">
+                    <span class="text-amber-600">⚡ Energy</span>
+                    <span id="stat-energy-val" class="text-slate-800">65%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="stat-energy-bar" class="stat-fill h-full bg-amber-400 rounded-full" style="width: 65%"></div>
+                </div>
+            </div>
+
+            <!-- Sanity -->
+            <div class="bg-white/80 rounded-xl p-2 border border-slate-200">
+                <div class="flex justify-between items-center text-[11px] font-extrabold mb-1">
+                    <span class="text-sky-600">🧠 Sanity</span>
+                    <span id="stat-sanity-val" class="text-slate-800">60%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="stat-sanity-bar" class="stat-fill h-full bg-sky-500 rounded-full" style="width: 60%"></div>
+                </div>
+            </div>
+
+            <!-- Acads / Rep -->
+            <div class="bg-white/80 rounded-xl p-2 border border-slate-200">
+                <div class="flex justify-between items-center text-[11px] font-extrabold mb-1">
+                    <span class="text-purple-600">🎓 Acads/Rep</span>
+                    <span id="stat-rep-val" class="text-slate-800">70%</span>
+                </div>
+                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="stat-rep-bar" class="stat-fill h-full bg-purple-500 rounded-full" style="width: 70%"></div>
+                </div>
+            </div>
+
+            <!-- Wallet -->
+            <div class="bg-white/80 rounded-xl p-2 border border-slate-200 flex items-center justify-between">
+                <span class="text-[11px] font-extrabold text-emerald-700">💵 Wallet</span>
+                <span id="stat-wallet-val" class="text-sm font-display font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">₱350</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main id="main-app-box" class="w-full max-w-2xl flex-1 flex flex-col justify-center items-center z-20 my-auto">
+
+        <!-- 1. CLEAN BLANK-SLATE START SCREEN + SHARED LEADERBOARD -->
+        <section id="screen-start" class="w-full glass-panel rounded-3xl p-6 sm:p-8 text-center pop-in">
+            <div class="inline-flex items-center gap-1.5 bg-slate-900 text-amber-300 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider mb-3">
+                <span>HARDCORE ETIVAC SIM</span>
+                <span>•</span>
+                <span>5 MINI-GAMES</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-display font-bold text-slate-900 tracking-tight leading-tight mb-2">
+                SURVIVE A DAY AS <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600">SEBI</span>
+            </h1>
+            <p class="text-slate-600 text-xs sm:text-sm font-semibold max-w-md mx-auto mb-5">
+                Pag bumagsak sa 0 ang Energy, Sanity, Acads, o naubos pera mo—ligwak agad. Ingat sa desisyon at sa mini-games.
+            </p>
+
+            <!-- Sebi Avatar -->
+            <div class="relative w-36 h-40 mx-auto mb-5 bg-gradient-to-b from-sky-100 to-amber-50 rounded-3xl border-2 border-slate-200 shadow-inner flex items-end justify-center overflow-hidden">
+                <div class="absolute top-2 left-2 bg-[#7f1d1d] text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded shadow">
+                    PERPS PSYCH
+                </div>
+                <div id="start-avatar-mount" class="w-32 h-36 anim-idle"></div>
+            </div>
+
+            <!-- Blank Slate Player Entry -->
+            <div class="max-w-sm mx-auto bg-slate-50 border-2 border-slate-200 rounded-2xl p-4 mb-5 text-left">
+                <label for="player-name-input" class="block text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">
+                    Who's playing right now?
+                </label>
+                <input id="player-name-input" type="text" maxlength="18" placeholder="Enter your name (e.g. Sebi, Kei...)"
+                    class="w-full bg-white border-2 border-slate-300 focus:border-amber-500 focus:outline-none rounded-xl px-3.5 py-2.5 text-sm font-bold text-slate-900 mb-2.5" />
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-[11px] font-bold text-slate-400">Quick pick:</span>
+                    <button type="button" onclick="quickFillName('Sebi')" class="text-xs font-bold bg-amber-100 hover:bg-amber-200 text-amber-800 px-2.5 py-1 rounded-lg transition">Sebi</button>
+                    <button type="button" onclick="quickFillName('Kei')" class="text-xs font-bold bg-rose-100 hover:bg-rose-200 text-rose-800 px-2.5 py-1 rounded-lg transition">Kei</button>
+                </div>
+                <p id="name-error" class="hidden text-xs font-bold text-rose-600 mb-2">Lagay muna pangalan mo lods!</p>
+
+                <button onclick="startGame()" class="choice-btn w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-display font-bold text-base sm:text-lg py-3 rounded-xl shadow-md">
+                    ▶ START DAY (₱350 BUDGET)
+                </button>
+            </div>
+
+            <!-- Live Shared Leaderboard Preview -->
+            <div class="max-w-md mx-auto bg-slate-900 text-white rounded-2xl p-4 text-left border-2 border-slate-700">
+                <div class="flex items-center justify-between mb-2.5">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <span>🏆 Top Etivac Survivors (Live Scores)</span>
+                    </h3>
+                    <span id="lb-status-dot" class="text-[10px] font-bold text-emerald-400">● Live</span>
+                </div>
+                <div id="start-leaderboard-list" class="space-y-1.5 text-xs">
+                    <div class="text-slate-400 italic py-2 text-center">Loading scores...</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. GAMEPLAY SCREEN -->
+        <section id="screen-game" class="hidden w-full glass-panel rounded-3xl p-4 sm:p-6 pop-in">
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <span id="chapter-badge" class="bg-slate-900 text-white font-display font-bold text-xs px-3 py-1 rounded-full">
+                    CHAPTER 1 / 5
+                </span>
+                <span id="mood-tag" class="bg-amber-100 text-amber-800 font-extrabold text-xs px-2.5 py-1 rounded-full">
+                    😰 Nagmamadali
+                </span>
+            </div>
+
+            <!-- Visual Stage -->
+            <div id="scene-stage" class="relative w-full h-44 sm:h-48 rounded-2xl mb-4 overflow-hidden border-2 border-slate-200 flex items-end justify-between px-4 sm:px-7 bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-100">
+                <div id="scene-decor" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
+                <div id="stage-static" class="hidden absolute inset-0 static-overlay pointer-events-none z-20"></div>
+
+                <!-- Sebi Avatar -->
+                <div id="game-avatar-mount" class="relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-idle"></div>
+
+                <!-- Speech Bubble -->
+                <div id="sebi-thought" class="relative z-10 self-start mt-3 max-w-[56%] bg-white border-2 border-slate-900 rounded-2xl rounded-bl-none p-2.5 sm:p-3 shadow-md">
+                    <p id="sebi-thought-text" class="text-xs sm:text-sm font-extrabold text-slate-900 leading-snug">
+                        "malalate na ko taena"
+                    </p>
+                </div>
+            </div>
+
+            <!-- Narrative -->
+            <div class="mb-4">
+                <h2 id="scene-title" class="text-xl sm:text-2xl font-display font-bold text-slate-900 mb-1">
+                    Morning Panic sa GMA
+                </h2>
+                <p id="scene-desc" class="text-slate-700 text-xs sm:text-sm leading-relaxed font-medium">
+                    7:15 AM na. Naka-white uniform ka na ng Perps pero kailangan mo nang makarating sa campus nang buo ang baon at pasensya.
+                </p>
+            </div>
+
+            <!-- Mini-Game Container -->
+            <div id="minigame-container" class="hidden mb-4 bg-slate-900 text-white rounded-2xl p-4 border-2 border-amber-400 shadow-inner"></div>
+
+            <!-- Outcome Feedback -->
+            <div id="outcome-box" class="hidden mb-4 rounded-2xl p-4 border-2 pop-in">
+                <div class="flex items-start gap-2.5">
+                    <span id="outcome-icon" class="text-2xl">⚡</span>
+                    <div class="flex-1">
+                        <p id="outcome-text" class="text-xs sm:text-sm font-bold text-slate-900 leading-snug"></p>
+                        <div id="outcome-deltas" class="flex flex-wrap gap-1.5 mt-2"></div>
+                    </div>
+                </div>
+                <button id="next-btn" onclick="proceedAfterOutcome()" class="choice-btn mt-3 w-full bg-slate-900 hover:bg-slate-800 text-white font-display font-bold py-2.5 px-4 rounded-xl text-sm flex items-center justify-center gap-2">
+                    <span>Next</span> <span>➔</span>
+                </button>
+            </div>
+
+            <!-- Choices Container -->
+            <div id="choices-container" class="flex flex-col gap-2.5"></div>
+        </section>
+
+        <!-- 3. ENDING / GAME OVER + LEADERBOARD SCREEN -->
+        <section id="screen-end" class="hidden w-full glass-panel rounded-3xl p-5 sm:p-7 text-center pop-in">
+            <div id="end-status-pill" class="inline-block bg-amber-100 border border-amber-300 text-amber-800 font-display font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider mb-2">
+                🌙 DAY COMPLETE
+            </div>
+
+            <h2 id="end-rank-title" class="text-2xl sm:text-4xl font-display font-bold text-slate-900 mb-1">
+                SURVIVOR NG ETIVAC
+            </h2>
+            <p id="end-rank-subtitle" class="text-xs sm:text-sm font-bold text-slate-600 mb-3">
+                Player: Sebi
+            </p>
+
+            <!-- Big Overall Score Box -->
+            <div class="bg-slate-900 text-white rounded-2xl p-4 mb-4 border-2 border-amber-400 shadow-md">
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-amber-300">OVERALL SURVIVAL SCORE</div>
+                <div id="end-total-score" class="text-4xl sm:text-5xl font-display font-bold text-white my-1">1,450</div>
+                <div id="end-highscore-badge" class="text-xs font-bold text-emerald-400">
+                    ✨ Score saved to leaderboard!
+                </div>
+            </div>
+
+            <!-- Final Avatar & Stats -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 bg-white/85 rounded-2xl p-3.5 border border-slate-200 mb-4">
+                <div id="end-avatar-mount" class="w-28 h-32 shrink-0 anim-idle"></div>
+                <div class="flex-1 text-left w-full">
+                    <p id="end-story-summary" class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed mb-3">
+                        Nakaligtas ka sa buong araw sa Cavite nang hindi nababaliw at hindi nauubusan ng pamasahe.
+                    </p>
+                    <div class="grid grid-cols-2 gap-1.5 text-xs font-extrabold">
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 text-amber-800">⚡ Energy: <span id="end-energy">0%</span></div>
+                        <div class="bg-sky-50 border border-sky-200 rounded-lg px-2.5 py-1.5 text-sky-800">🧠 Sanity: <span id="end-sanity">0%</span></div>
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg px-2.5 py-1.5 text-purple-800">🎓 Acads: <span id="end-rep">0%</span></div>
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-lg px-2.5 py-1.5 text-emerald-800">💵 Cash: <span id="end-wallet">₱0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shared Leaderboard on End Screen -->
+            <div class="bg-slate-900 text-white rounded-2xl p-4 text-left border-2 border-slate-700 mb-4">
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-amber-400">🏆 Leaderboard (Beat the High Score!)</h3>
+                </div>
+                <div id="end-leaderboard-list" class="space-y-1.5 text-xs max-h-44 overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- Sweet Girlfriend End Message -->
+            <div class="bg-gradient-to-r from-rose-100 via-pink-100 to-amber-100 border-2 border-rose-300 rounded-2xl p-4 mb-5 shadow-sm">
+                <div class="text-lg sm:text-xl font-display font-bold text-rose-600 tracking-wide">
+                    I LOVE YOU BABY ❤️
+                </div>
+                <div class="text-xs font-extrabold text-rose-800 mt-0.5">
+                    — from #1 fan (Kei)
+                </div>
+            </div>
+
+            <button onclick="returnToStart()" class="choice-btn w-full sm:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-display font-bold text-base px-8 py-3 rounded-2xl shadow-md">
+                🔄 Play Again / Switch Player
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Exact Requested Footer -->
+    <footer class="text-center text-xs font-extrabold text-slate-800/80 mt-3 z-20 tracking-wide">
+        get it together!
+    </footer>
+
+    <!-- FIREBASE MODULE + GAME ENGINE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        /* ==========================================================================
+           1. FIREBASE SHARED LEADERBOARD SETUP
+           ========================================================================== */
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'sebi-etivac-sim';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let leaderboardEntries = [];
+
+        async function initFirebase() {
+            try {
+                if (typeof __firebase_config === 'undefined') {
+                    renderLeaderboardUI();
+                    return;
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user && db) {
+                        listenToLeaderboard();
+                    }
+                });
+            } catch (err) {
+                console.warn("Leaderboard offline fallback:", err);
+                renderLeaderboardUI();
+            }
+        }
+
+        function listenToLeaderboard() {
+            if (!db || !currentUser) return;
+            const scoresCol = collection(db, 'artifacts', appId, 'public', 'data', 'sebi_scores');
+            onSnapshot(scoresCol, (snapshot) => {
+                const list = [];
+                snapshot.forEach((docSnap) => {
+                    list.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                // Sort descending by score in memory
+                list.sort((a, b) => (b.score || 0) - (a.score || 0));
+                leaderboardEntries = list;
+                renderLeaderboardUI();
+            }, (error) => {
+                console.warn("Leaderboard listener error:", error);
+            });
+        }
+
+        async function saveScoreToLeaderboard(playerName, score, endingTitle, survived) {
+            const entry = {
+                playerName: playerName || "Anonymous",
+                score: Math.round(score),
+                endingTitle: endingTitle,
+                survived: survived,
+                timestamp: Date.now()
+            };
+
+            // Optimistic local update
+            leaderboardEntries.push(entry);
+            leaderboardEntries.sort((a, b) => (b.score || 0) - (a.score || 0));
+            renderLeaderboardUI();
+
+            if (!db || !currentUser) return;
+            try {
+                const scoresCol = collection(db, 'artifacts', appId, 'public', 'data', 'sebi_scores');
+                await addDoc(scoresCol, entry);
+            } catch (e) {
+                console.warn("Could not sync score:", e);
+            }
+        }
+
+        function renderLeaderboardUI() {
+            const targets = ['start-leaderboard-list', 'end-leaderboard-list'];
+            targets.forEach((elId) => {
+                const box = document.getElementById(elId);
+                if (!box) return;
+
+                if (leaderboardEntries.length === 0) {
+                    box.innerHTML = `<div class="text-slate-400 text-center py-2">Wala pang score! Ikaw na mauna mag-set ng record.</div>`;
+                    return;
+                }
+
+                box.innerHTML = leaderboardEntries.slice(0, 8).map((item, idx) => {
+                    const medal = idx === 0 ? '👑' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+                    const highlight = idx === 0 ? 'bg-amber-500/20 border-amber-400/50 text-amber-200' : 'bg-slate-800/90 border-slate-700 text-slate-200';
+                    const badge = item.survived ? '✅' : '💀';
+                    return `
+                        <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl border ${highlight}">
+                            <div class="flex items-center gap-2 truncate">
+                                <span class="font-display font-bold w-6 text-center">${medal}</span>
+                                <span class="font-extrabold text-white truncate">${escapeHTML(item.playerName)}</span>
+                                <span class="text-[10px] text-slate-400 truncate hidden sm:inline">${badge} ${escapeHTML(item.endingTitle || '')}</span>
+                            </div>
+                            <span class="font-display font-bold text-amber-400 shrink-0 ml-2">${item.score.toLocaleString()} pts</span>
+                        </div>
+                    `;
+                }).join('');
+            });
+        }
+
+        function escapeHTML(str) {
+            return String(str).replace(/[&<>"']/g, (m) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[m]));
+        }
+
+        /* ==========================================================================
+           2. WEB AUDIO API SOUND ENGINE
+           ========================================================================== */
+        let audioCtx = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioCtx) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AC();
+            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        window.toggleAudio = function () {
+            initAudio();
+            soundEnabled = !soundEnabled;
+            document.getElementById('audio-icon').textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) playSound('pop');
+        };
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'pop') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(760, now + 0.08);
+                    gain.gain.setValueAtTime(0.14, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                    osc.start(now); osc.stop(now + 0.09);
+                } else if (type === 'coin') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(987.77, now);
+                    osc.frequency.setValueAtTime(1318.51, now + 0.07);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.start(now); osc.stop(now + 0.25);
+                } else if (type === 'motor') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(90, now);
+                    osc.frequency.linearRampToValueAtTime(210, now + 0.2);
+                    osc.frequency.linearRampToValueAtTime(120, now + 0.35);
+                    osc.frequency.linearRampToValueAtTime(260, now + 0.55);
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+                    osc.start(now); osc.stop(now + 0.58);
+                } else if (type === 'damage') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.linearRampToValueAtTime(75, now + 0.35);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+                    osc.start(now); osc.stop(now + 0.38);
+                } else if (type === 'heartbeat') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(95, now);
+                    osc.frequency.exponentialRampToValueAtTime(45, now + 0.14);
+                    gain.gain.setValueAtTime(0.22, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                    osc.start(now); osc.stop(now + 0.16);
+                } else if (type === 'victory') {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'triangle';
+                        o.connect(g); g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + idx * 0.08);
+                        g.gain.setValueAtTime(0.14, now + idx * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                        o.start(now + idx * 0.08); o.stop(now + idx * 0.08 + 0.3);
+                    });
+                } else if (type === 'gameover') {
+                    [300, 250, 200, 140].forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.type = 'sawtooth';
+                        o.connect(g); g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + idx * 0.14);
+                        g.gain.setValueAtTime(0.13, now + idx * 0.14);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.14 + 0.25);
+                        o.start(now + idx * 0.14); o.stop(now + idx * 0.14 + 0.25);
+                    });
+                }
+            } catch (e) {}
+        }
+
+        /* ==========================================================================
+           3. CUSTOM SEBI SVG AVATAR
+           ========================================================================== */
+        function renderSebiAvatar(mood = 'chill') {
+            let leftEyebrow = `<path d="M 66 84 L 88 86" stroke="#111827" stroke-width="4.2" stroke-linecap="round"/>`;
+            let rightEyebrow = `
+                <path d="M 112 86 L 123 85" stroke="#111827" stroke-width="4.2" stroke-linecap="round"/>
+                <path d="M 127 84.5 L 135 84" stroke="#111827" stroke-width="4.2" stroke-linecap="round"/>
+            `;
+            let eyes = `
+                <path d="M 67 94 Q 78 90 88 94 Q 87 103 77 103 Q 68 103 67 94 Z" fill="#ffffff" stroke="#111827" stroke-width="2.2"/>
+                <circle cx="78" cy="96.5" r="4.5" fill="#0f172a"/>
+                <circle cx="79.5" cy="95" r="1.3" fill="#ffffff"/>
+                <path d="M 112 94 Q 122 90 133 94 Q 132 103 123 103 Q 113 103 112 94 Z" fill="#ffffff" stroke="#111827" stroke-width="2.2"/>
+                <circle cx="122" cy="96.5" r="4.5" fill="#0f172a"/>
+                <circle cx="123.5" cy="95" r="1.3" fill="#ffffff"/>
+            `;
+            let mouth = `<path d="M 93 121 Q 100 119 107 121" stroke="#111827" stroke-width="2.8" stroke-linecap="round" fill="none"/>`;
+            let extras = ``;
+
+            if (mood === 'panic' || mood === 'sweat') {
+                leftEyebrow = `<path d="M 66 86 L 88 81" stroke="#111827" stroke-width="4.2" stroke-linecap="round"/>`;
+                rightEyebrow = `
+                    <path d="M 112 81 L 123 85" stroke="#111827" stroke-width="4.2" stroke-linecap="round"/>
+                    <path d="M 127 86 L 135 88" stroke="#111827" stroke-width="4.2" stroke-linecap="round"/>
+                `;
+                mouth = `<path d="M 90 123 Q 100 116 110 123" stroke="#111827" stroke-width="2.8" stroke-linecap="round" fill="none"/>`;
+                extras = `
+                    <path d="M 140 74 Q 146 84 140 88 Q 134 84 140 74 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+                    <path d="M 58 84 Q 63 92 58 95 Q 53 92 58 84 Z" fill="#38bdf8" stroke="#0284c7" stroke-width="1.2"/>
+                `;
+            } else if (mood === 'tipsy') {
+                mouth = `<path d="M 92 120 Q 100 126 108 120" stroke="#111827" stroke-width="2.8" stroke-linecap="round" fill="none"/>`;
+                extras = `
+                    <ellipse cx="72" cy="109" rx="8" ry="4.5" fill="#fb7185" opacity="0.7"/>
+                    <ellipse cx="128" cy="109" rx="8" ry="4.5" fill="#fb7185" opacity="0.7"/>
+                    <text x="136" y="74" font-size="16" font-weight="bold" fill="#e11d48">~</text>
+                `;
+            } else if (mood === 'hyped') {
+                mouth = `<path d="M 90 118 Q 100 130 110 118 Z" fill="#e11d48" stroke="#111827" stroke-width="2.2"/>`;
+                extras = `<text x="50" y="75" font-size="15">✨</text><text x="135" y="75" font-size="15">🔥</text>`;
+            } else if (mood === 'dead') {
+                eyes = `
+                    <text x="70" y="101" font-size="15" font-weight="900" fill="#111827">X</text>
+                    <text x="116" y="101" font-size="15" font-weight="900" fill="#111827">X</text>
+                `;
+                mouth = `<path d="M 91 124 Q 100 117 109 124" stroke="#111827" stroke-width="2.8" fill="none"/>`;
+            }
+
+            return `
+            <svg viewBox="0 0 200 220" class="w-full h-full drop-shadow-md overflow-visible">
+                <path d="M 52 95 L 36 74 L 54 68 L 43 44 L 68 48 L 68 24 L 90 38 L 102 16 L 114 38 L 136 24 L 134 49 L 158 43 L 146 68 L 164 75 L 148 96 Z"
+                      fill="#111827" stroke="#030712" stroke-width="2.5" stroke-linejoin="round"/>
+                <rect x="86" y="128" width="28" height="24" rx="8" fill="#f3d2b3" stroke="#111827" stroke-width="2.2"/>
+                <path d="M 42 215 L 48 162 Q 52 146 76 144 L 124 144 Q 148 146 152 162 L 158 215 Z"
+                      fill="#ffffff" stroke="#1e293b" stroke-width="2.5" stroke-linejoin="round"/>
+                <line x1="100" y1="156" x2="100" y2="215" stroke="#cbd5e1" stroke-width="2"/>
+                <circle cx="100" cy="175" r="2.2" fill="#94a3b8"/>
+                <circle cx="100" cy="195" r="2.2" fill="#94a3b8"/>
+                <path d="M 76 144 L 100 164 L 84 172 L 68 152 Z" fill="#ffffff" stroke="#7f1d1d" stroke-width="2.5"/>
+                <path d="M 124 144 L 100 164 L 116 172 L 132 152 Z" fill="#ffffff" stroke="#7f1d1d" stroke-width="2.5"/>
+                <path d="M 82 145 L 98 188 L 102 188 L 118 145" fill="none" stroke="#7f1d1d" stroke-width="4.5"/>
+                <path d="M 82 145 L 98 188 L 102 188 L 118 145" fill="none" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3,2"/>
+                <rect x="91" y="186" width="18" height="24" rx="3" fill="#ffffff" stroke="#7f1d1d" stroke-width="2"/>
+                <rect x="93" y="188" width="14" height="5" fill="#7f1d1d"/>
+                <path d="M 58 92 Q 50 92 52 104 Q 54 112 60 110" fill="#f3d2b3" stroke="#111827" stroke-width="2.2"/>
+                <path d="M 142 92 Q 150 92 148 104 Q 146 112 140 110" fill="#f3d2b3" stroke="#111827" stroke-width="2.2"/>
+                <path d="M 60 72 Q 60 54 100 54 Q 140 54 140 72 L 139 106 Q 137 127 100 134 Q 63 127 61 106 Z"
+                      fill="#f8dec4" stroke="#111827" stroke-width="2.5"/>
+                ${leftEyebrow}
+                ${rightEyebrow}
+                ${eyes}
+                <path d="M 100 101 L 98 109 L 102 110" stroke="#c89d7c" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                ${mouth}
+                ${extras}
+                <path d="M 56 84 L 62 56 L 76 44 L 92 40 L 100 48 L 109 40 L 126 45 L 139 58 L 144 84 L 134 68 L 124 80 L 116 64 L 105 85 L 100 66 L 94 85 L 84 64 L 75 80 L 66 68 Z"
+                      fill="#111827" stroke="#030712" stroke-width="2" stroke-linejoin="round"/>
+            </svg>`;
+        }
+
+        /* ==========================================================================
+           4. GAME STATE & HARDCORE ENGINE
+           ========================================================================== */
+        const state = {
+            playerName: "Sebi",
+            chapter: 0,
+            energy: 65,
+            sanity: 60,
+            rep: 70,
+            wallet: 350,
+            bonusPoints: 0,
+            isGameOver: false,
+            gameOverReason: "",
+            activeIntervals: []
+        };
+
+        function clearAllTimers() {
+            state.activeIntervals.forEach(id => clearInterval(id));
+            state.activeIntervals = [];
+        }
+
+        window.quickFillName = function (name) {
+            playSound('pop');
+            document.getElementById('player-name-input').value = name;
+            document.getElementById('name-error').classList.add('hidden');
+        };
+
+        window.returnToStart = function () {
+            clearAllTimers();
+            playSound('pop');
+            document.body.className = "sky-morning min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+            document.getElementById('hud-bar').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-end').classList.add('hidden');
+            document.getElementById('screen-start').classList.remove('hidden');
+        };
+
+        window.startGame = function () {
+            const rawName = document.getElementById('player-name-input').value.trim();
+            if (!rawName) {
+                document.getElementById('name-error').classList.remove('hidden');
+                triggerScreenShake();
+                playSound('damage');
+                return;
+            }
+            document.getElementById('name-error').classList.add('hidden');
+            initAudio();
+            playSound('victory');
+
+            state.playerName = rawName;
+            state.chapter = 0;
+            state.energy = 65;
+            state.sanity = 60;
+            state.rep = 70;
+            state.wallet = 350;
+            state.bonusPoints = 0;
+            state.isGameOver = false;
+            state.gameOverReason = "";
+
+            document.getElementById('hud-player-tag').textContent = `👤 ${state.playerName}`;
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-end').classList.add('hidden');
+            document.getElementById('hud-bar').classList.remove('hidden');
+            document.getElementById('screen-game').classList.remove('hidden');
+
+            updateHUD();
+            loadChapter(0);
+        };
+
+        function triggerScreenShake() {
+            const box = document.getElementById('main-app-box');
+            box.classList.remove('shake-active');
+            void box.offsetWidth;
+            box.classList.add('shake-active');
+
+            const dmg = document.getElementById('damage-overlay');
+            dmg.classList.remove('damage-flash');
+            void dmg.offsetWidth;
+            dmg.classList.add('damage-flash');
+        }
+
+        function spawnStatPopup(text, isGood = true) {
+            const fx = document.getElementById('fx-container');
+            const el = document.createElement('div');
+            el.className = `stat-popup font-display font-bold text-sm sm:text-base px-3 py-1 rounded-full shadow-lg border-2 ${
+                isGood ? 'bg-emerald-500 text-white border-emerald-200' : 'bg-rose-600 text-white border-rose-200'
+            }`;
+            el.textContent = text;
+            el.style.left = `${28 + Math.random() * 44}%`;
+            el.style.top = `${32 + Math.random() * 20}%`;
+            fx.appendChild(el);
+            setTimeout(() => el.remove(), 1400);
+        }
+
+        function calculateCurrentScore() {
+            const statSum = Math.max(0, state.energy) * 6 +
+                            Math.max(0, state.sanity) * 6 +
+                            Math.max(0, state.rep) * 6 +
+                            Math.max(0, state.wallet) * 2;
+            return statSum + state.bonusPoints;
+        }
+
+        function updateHUD() {
+            document.getElementById('stat-energy-val').textContent = `${Math.max(0, state.energy)}%`;
+            document.getElementById('stat-energy-bar').style.width = `${Math.max(0, Math.min(100, state.energy))}%`;
+            document.getElementById('stat-energy-bar').className = `stat-fill h-full rounded-full ${state.energy <= 25 ? 'bg-rose-500' : 'bg-amber-400'}`;
+
+            document.getElementById('stat-sanity-val').textContent = `${Math.max(0, state.sanity)}%`;
+            document.getElementById('stat-sanity-bar').style.width = `${Math.max(0, Math.min(100, state.sanity))}%`;
+            document.getElementById('stat-sanity-bar').className = `stat-fill h-full rounded-full ${state.sanity <= 25 ? 'bg-rose-500' : 'bg-sky-500'}`;
+
+            document.getElementById('stat-rep-val').textContent = `${Math.max(0, state.rep)}%`;
+            document.getElementById('stat-rep-bar').style.width = `${Math.max(0, Math.min(100, state.rep))}%`;
+            document.getElementById('stat-rep-bar').className = `stat-fill h-full rounded-full ${state.rep <= 25 ? 'bg-rose-500' : 'bg-purple-500'}`;
+
+            document.getElementById('stat-wallet-val').textContent = `₱${state.wallet}`;
+            document.getElementById('hud-score-badge').textContent = `🏆 ${calculateCurrentScore().toLocaleString()} pts`;
+        }
+
+        function applyDeltas(d, bonus = 0) {
+            let tookDamage = false;
+            if (d.energy) {
+                state.energy = Math.min(100, state.energy + d.energy);
+                spawnStatPopup(`${d.energy > 0 ? '+' : ''}${d.energy}% Energy`, d.energy > 0);
+                if (d.energy <= -15) tookDamage = true;
+            }
+            if (d.sanity) {
+                state.sanity = Math.min(100, state.sanity + d.sanity);
+                spawnStatPopup(`${d.sanity > 0 ? '+' : ''}${d.sanity}% Sanity`, d.sanity > 0);
+                if (d.sanity <= -15) tookDamage = true;
+            }
+            if (d.rep) {
+                state.rep = Math.min(100, state.rep + d.rep);
+                spawnStatPopup(`${d.rep > 0 ? '+' : ''}${d.rep}% Acads`, d.rep > 0);
+                if (d.rep <= -15) tookDamage = true;
+            }
+            if (d.wallet) {
+                state.wallet += d.wallet;
+                spawnStatPopup(`${d.wallet > 0 ? '+' : '-'}₱${Math.abs(d.wallet)}`, d.wallet > 0);
+                if (d.wallet <= -100) tookDamage = true;
+            }
+            if (bonus) {
+                state.bonusPoints += bonus;
+                spawnStatPopup(`+${bonus} PTS!`, true);
+            }
+
+            if (tookDamage) {
+                triggerScreenShake();
+                playSound('damage');
+            }
+
+            updateHUD();
+            checkGameOverCondition();
+        }
+
+        function checkGameOverCondition() {
+            if (state.energy <= 0) {
+                state.isGameOver = true;
+                state.gameOverReason = "NAUBUSAN NG ENERGY — Nakatulog ka sa jeep pa-GMA at lumagpas hanggang Biñan.";
+            } else if (state.sanity <= 0) {
+                state.isGameOver = true;
+                state.gameOverReason = "SABOG NA SANITY — Napuno ka na sa init, traffic, at away. Nag-offline ka na sa mundo.";
+            } else if (state.rep <= 0) {
+                state.isGameOver = true;
+                state.gameOverReason = "BAGSAG SA ACADS — Na-markahan ka ng prof sa Psych. INC na naman.";
+            } else if (state.wallet < 0) {
+                state.isGameOver = true;
+                state.gameOverReason = "BROKE SA ETIVAC — Negats na wallet mo! Naglakad ka pauwi mula Silang.";
+            }
+        }
+
+        function showOutcomeBox(text, deltas, bonus, isGood) {
+            const choicesBox = document.getElementById('choices-container');
+            const mgBox = document.getElementById('minigame-container');
+            const outcomeBox = document.getElementById('outcome-box');
+
+            choicesBox.classList.add('hidden');
+            mgBox.classList.add('hidden');
+            outcomeBox.classList.remove('hidden');
+
+            outcomeBox.className = `mb-4 rounded-2xl p-4 border-2 pop-in ${
+                isGood ? 'bg-emerald-50 border-emerald-400' : 'bg-rose-50 border-rose-400'
+            }`;
+            document.getElementById('outcome-icon').textContent = isGood ? '🔥' : '💀';
+            document.getElementById('outcome-text').textContent = text;
+
+            const pills = document.getElementById('outcome-deltas');
+            pills.innerHTML = '';
+
+            const addPill = (lbl, val, suffix = '%') => {
+                if (!val) return;
+                const pos = val > 0;
+                const el = document.createElement('span');
+                el.className = `text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
+                    pos ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300'
+                }`;
+                el.textContent = `${lbl} ${pos ? '+' : ''}${val}${suffix}`;
+                pills.appendChild(el);
+            };
+
+            addPill('⚡ Energy', deltas.energy);
+            addPill('🧠 Sanity', deltas.sanity);
+            addPill('🎓 Acads', deltas.rep);
+            if (deltas.wallet) {
+                const pos = deltas.wallet > 0;
+                const el = document.createElement('span');
+                el.className = `text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
+                    pos ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'
+                }`;
+                el.textContent = `💵 ${pos ? '+' : '-'}₱${Math.abs(deltas.wallet)}`;
+                pills.appendChild(el);
+            }
+            if (bonus) {
+                const el = document.createElement('span');
+                el.className = "text-xs font-extrabold px-2.5 py-0.5 rounded-full border bg-amber-200 text-amber-900 border-amber-400";
+                el.textContent = `🏆 +${bonus} Bonus Pts`;
+                pills.appendChild(el);
+            }
+
+            const nextBtn = document.getElementById('next-btn');
+            if (state.isGameOver) {
+                nextBtn.className = "choice-btn mt-3 w-full bg-rose-600 hover:bg-rose-700 text-white font-display font-bold py-2.5 px-4 rounded-xl text-sm";
+                nextBtn.innerHTML = `<span>💀 Tingnan ang Final Score</span>`;
+            } else if (state.chapter >= 4) {
+                nextBtn.className = "choice-btn mt-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-display font-bold py-2.5 px-4 rounded-xl text-sm";
+                nextBtn.innerHTML = `<span>🏆 Tapusin ang Araw & Save Score</span>`;
+            } else {
+                nextBtn.className = "choice-btn mt-3 w-full bg-slate-900 hover:bg-slate-800 text-white font-display font-bold py-2.5 px-4 rounded-xl text-sm";
+                nextBtn.innerHTML = `<span>Next Chapter</span> <span>➔</span>`;
+            }
+        }
+
+        window.proceedAfterOutcome = function () {
+            clearAllTimers();
+            playSound('pop');
+            if (state.isGameOver) {
+                finishRun(false);
+                return;
+            }
+            state.chapter++;
+            if (state.chapter > 4) {
+                finishRun(true);
+            } else {
+                loadChapter(state.chapter);
+            }
+        };
+
+        /* ==========================================================================
+           5. THE 5 CHAPTERS & 5 MINI-GAMES
+           ========================================================================== */
+        function loadChapter(idx) {
+            clearAllTimers();
+            const stage = document.getElementById('scene-stage');
+            const staticOverlay = document.getElementById('stage-static');
+            const avatarMount = document.getElementById('game-avatar-mount');
+            const choicesBox = document.getElementById('choices-container');
+            const mgBox = document.getElementById('minigame-container');
+            const outcomeBox = document.getElementById('outcome-box');
+
+            stage.classList.remove('drunk-effect');
+            staticOverlay.classList.add('hidden');
+            outcomeBox.classList.add('hidden');
+            choicesBox.innerHTML = '';
+            mgBox.innerHTML = '';
+            mgBox.classList.add('hidden');
+
+            document.getElementById('chapter-badge').textContent = `CHAPTER ${idx + 1} / 5`;
+
+            if (idx === 0) {
+                // CHAPTER 1: Morning Rush & GMA Highway Dodge Mini-Game
+                document.body.className = "sky-morning min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('hud-time-badge').textContent = "⏰ 7:15 AM";
+                document.getElementById('hud-location').textContent = "📍 GMA Highway";
+                document.getElementById('mood-tag').textContent = "😰 Nagmamadali";
+                document.getElementById('scene-decor').innerHTML = `<div class="absolute top-2 right-4 text-2xl">☀️</div><div class="absolute bottom-2 left-3 text-[11px] font-extrabold bg-amber-500 text-white px-2 py-0.5 rounded">🛣️ GMA TO PERPS</div>`;
+                // EXACT REQUIRED FIRST BUBBLE
+                document.getElementById('sebi-thought-text').textContent = `"malalate na ko taena"`;
+                document.getElementById('scene-title').textContent = "Morning Rush: Motor o Tricy?";
+                document.getElementById('scene-desc').textContent = "7:15 AM na, may quiz pa kayo sa Psych! Pili ka kung magmo-motor ka (gastos sa gas pero mabilis) o magta-tricycle (mura pero alanganin sa oras)—tapos iwasan mo mga lubak sa GMA highway!";
+
+                avatarMount.className = "relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-idle";
+                avatarMount.innerHTML = renderSebiAvatar('panic');
+
+                choicesBox.classList.remove('hidden');
+                const opts = [
+                    {
+                        text: "🏍️ Mag-Motor (Gas -₱60, mas mabilis sa daan)",
+                        sub: "Mas madali umilag sa mini-game",
+                        mode: 'motor',
+                        cost: -60
+                    },
+                    {
+                        text: "🛺 Mag-Tricycle (-₱30, sikip at maalog)",
+                        sub: "Tipid sa pera pero mabagal umilag sa lubak",
+                        mode: 'tricy',
+                        cost: -30
+                    }
+                ];
+                opts.forEach(o => {
+                    const btn = document.createElement('button');
+                    btn.className = "choice-btn w-full text-left bg-white hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 rounded-2xl p-3.5 flex items-center justify-between";
+                    btn.innerHTML = `<div><div class="font-extrabold text-sm text-slate-900">${o.text}</div><div class="text-xs text-slate-500">${o.sub}</div></div><span class="font-bold text-amber-500">➔</span>`;
+                    btn.onclick = () => {
+                        playSound('motor');
+                        applyDeltas({ wallet: o.cost });
+                        if (state.isGameOver) {
+                            showOutcomeBox("Wala ka nang pamasahe/pang-gas!", { wallet: o.cost }, 0, false);
+                            return;
+                        }
+                        choicesBox.classList.add('hidden');
+                        mgBox.classList.remove('hidden');
+                        startMiniGame1_HighwayDodge(mgBox, o.mode);
+                    };
+                    choicesBox.appendChild(btn);
+                });
+            }
+
+            else if (idx === 1) {
+                // CHAPTER 2: Kubo Session & Psych Presentation Bluff Mini-Game
+                document.body.className = "sky-noon min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('hud-time-badge').textContent = "⏰ 10:30 AM";
+                document.getElementById('hud-location').textContent = "📍 Perps Psych Room";
+                document.getElementById('mood-tag').textContent = "😵‍💫 May Amats";
+                document.getElementById('scene-decor').innerHTML = `<div class="absolute top-2 right-4 text-[11px] font-extrabold bg-[#7f1d1d] text-amber-300 px-2 py-0.5 rounded">🎓 PSYCH PRESENTATION</div>`;
+                document.getElementById('sebi-thought-text').textContent = `"bakit kasi nag-kubo pa bago pumasok... kalma lang, hindi ako lasing"`;
+                document.getElementById('scene-title').textContent = "Kubo Aftermath: Magpanggap sa Prof!";
+                document.getElementById('scene-desc').textContent = "Napatagay ka sa Kubo kasama tropa bago pumasok. Bigla kang tinawag sa harap para mag-present! I-lock mo ang composure meter sa GREEN ZONE nang 3 beses habang umiikot paningin mo.";
+
+                stage.classList.add('drunk-effect');
+                avatarMount.className = "relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-tipsy";
+                avatarMount.innerHTML = renderSebiAvatar('tipsy');
+
+                mgBox.classList.remove('hidden');
+                startMiniGame2_SoberPresentation(mgBox);
+            }
+
+            else if (idx === 2) {
+                // CHAPTER 3: Canteen Fried Chicken, Tambay & LDR Tampuhan Mini-Game
+                document.body.className = "sky-noon min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('hud-time-badge').textContent = "⏰ 1:00 PM";
+                document.getElementById('hud-location').textContent = "📍 Perps Canteen / Tambayan";
+                document.getElementById('mood-tag').textContent = "🍗 Gutom + 14 Missed Chats";
+                document.getElementById('scene-decor').innerHTML = `<div class="absolute top-2 right-4 text-[11px] font-extrabold bg-rose-600 text-white px-2 py-0.5 rounded animate-bounce">💬 Kei: "ah sige wag ka na mag-update"</div>`;
+                document.getElementById('sebi-thought-text').textContent = `"kain muna fried chicken sa canteen... hala nagtatampo na si Kei sa LDR!"`;
+                document.getElementById('scene-title').textContent = "Lunch Break & LDR Tampuhan";
+                document.getElementById('scene-desc').textContent = "Bili ka muna ng canteen fried chicken at pampalamig, pero nag-chat na si Kei dahil kanina ka pa walang update. Isang maling sagot, away malala (-35 Sanity)!";
+
+                avatarMount.className = "relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-idle";
+                avatarMount.innerHTML = renderSebiAvatar('sweat');
+
+                choicesBox.classList.remove('hidden');
+                const spots = [
+                    { text: "🍗 Canteen Fried Chicken + KKOPI Vanilla Latte (-₱150)", eff: { energy: +25, sanity: +10, wallet: -150 } },
+                    { text: "🍦 Canteen Fried Chicken + Bingchun (-₱155)", eff: { energy: +22, sanity: +12, wallet: -155 } },
+                    { text: "🏬 Savemore / The Portal GMA Aircon + Snacks (-₱130)", eff: { energy: +15, sanity: +15, wallet: -130 } }
+                ];
+                spots.forEach(s => {
+                    const btn = document.createElement('button');
+                    btn.className = "choice-btn w-full text-left bg-white hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-between";
+                    btn.innerHTML = `<span class="font-extrabold text-xs sm:text-sm text-slate-900">${s.text}</span><span class="font-bold text-amber-500">➔</span>`;
+                    btn.onclick = () => {
+                        playSound('coin');
+                        applyDeltas(s.eff);
+                        if (state.isGameOver) {
+                            showOutcomeBox("Naubos na pera mo sa tambay!", s.eff, 0, false);
+                            return;
+                        }
+                        choicesBox.classList.add('hidden');
+                        mgBox.classList.remove('hidden');
+                        startMiniGame3_LDRLambing(mgBox);
+                    };
+                    choicesBox.appendChild(btn);
+                });
+            }
+
+            else if (idx === 3) {
+                // CHAPTER 4: Silang Cavite Moved Venue + Low-Data Google Maps Mini-Game
+                document.body.className = "sky-afternoon min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('hud-time-badge').textContent = "⏰ 4:00 PM";
+                document.getElementById('hud-location').textContent = "📍 Silang, Cavite (1 Bar Data)";
+                document.getElementById('mood-tag').textContent = "📶 E / No Signal";
+                document.getElementById('scene-decor').innerHTML = `<div class="absolute top-2 right-4 text-[11px] font-extrabold bg-rose-600 text-white px-2 py-0.5 rounded">⚠️ DATA: 3MB LEFT</div>`;
+                document.getElementById('sebi-thought-text').textContent = `"nilipat bigla yung pupuntahan sa Silang tapos walang signal Google Maps?!"`;
+                document.getElementById('scene-title').textContent = "Silang Detour & 3MB Data Crisis";
+                document.getElementById('scene-desc').textContent = "Pagdating mo sa Silang, biglang lumipat ng ibang lugar yung pupuntahan! Naglo-loading na lang Google Maps mo. Kabisaduhin ang 4 na liko bago maubos ang data!";
+
+                staticOverlay.classList.remove('hidden');
+                avatarMount.className = "relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-idle";
+                avatarMount.innerHTML = renderSebiAvatar('panic');
+
+                mgBox.classList.remove('hidden');
+                startMiniGame4_SilangMapsMemory(mgBox);
+            }
+
+            else if (idx === 4) {
+                // CHAPTER 5: Fried Siomai, Riverview Guard (Going INSIDE Subd!) & Night Grind
+                document.body.className = "sky-sunset min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('hud-time-badge').textContent = "⏰ 7:30 PM";
+                document.getElementById('hud-location').textContent = "📍 Riverview Gate (Papasok)";
+                document.getElementById('mood-tag').textContent = "🚧 Harang sa Gate";
+                document.getElementById('scene-decor').innerHTML = `<div class="absolute top-2 right-4 text-[11px] font-extrabold bg-slate-900 text-amber-300 px-2 py-0.5 rounded">🚧 RIVERVIEW ENTRANCE GUARD</div>`;
+                document.getElementById('sebi-thought-text').textContent = `"kakatapos ko lang mag-fried siomai, haharangin pa ko ng guard papasok ng Riverview?!"`;
+                document.getElementById('scene-title').textContent = "Fried Siomai & Riverview Entrance Guard";
+                document.getElementById('scene-desc').textContent = "Bumili ka muna ng fried siomai bago umuwi, pero pagdating sa gate papasok ng Riverview Subdivision, hinarang ka ng mahigpit na guard! Sagutin nang tama ang tanong niya bago maubos ang oras.";
+
+                avatarMount.className = "relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-idle";
+                avatarMount.innerHTML = renderSebiAvatar('sweat');
+
+                choicesBox.classList.remove('hidden');
+                const siomaiOpts = [
+                    { text: "🥟 Bili muna ng Fried Siomai w/ chili garlic (-₱45, +20 Energy, +15 Sanity)", eff: { energy: +20, sanity: +15, wallet: -45 } },
+                    { text: "🚶 Wag na mag-siomai, tipid muna (-10 Sanity)", eff: { energy: -5, sanity: -10, wallet: 0 } }
+                ];
+                siomaiOpts.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = "choice-btn w-full text-left bg-white hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 rounded-2xl p-3 flex items-center justify-between";
+                    btn.innerHTML = `<span class="font-extrabold text-xs sm:text-sm text-slate-900">${opt.text}</span><span class="font-bold text-amber-500">➔</span>`;
+                    btn.onclick = () => {
+                        playSound('pop');
+                        applyDeltas(opt.eff);
+                        if (state.isGameOver) {
+                            showOutcomeBox("Bumigay ka na bago pa makapasok ng subdivision!", opt.eff, 0, false);
+                            return;
+                        }
+                        choicesBox.classList.add('hidden');
+                        mgBox.classList.remove('hidden');
+                        startMiniGame5_RiverviewGuardAndNight(mgBox);
+                    };
+                    choicesBox.appendChild(btn);
+                });
+            }
+        }
+
+        /* ==========================================================================
+           MINI-GAME 1: GMA HIGHWAY DODGE (3-Lane Reflex Survival)
+           ========================================================================== */
+        function startMiniGame1_HighwayDodge(container, mode) {
+            let playerLane = 1; // 0 = Left, 1 = Mid, 2 = Right
+            let obstacles = []; // { lane, y }
+            let timeLeft = 9.0;
+            let hits = 0;
+            const vehicleEmoji = mode === 'motor' ? '🏍️' : '🛺';
+
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-extrabold text-amber-400">🎮 MINI-GAME 1: Iwasan ang Lubak & Jeep!</span>
+                    <span id="mg1-timer" class="text-xs font-bold bg-slate-800 px-2 py-0.5 rounded">9.0s</span>
+                </div>
+                <div id="mg1-road" class="relative w-full h-44 bg-slate-800 rounded-xl border-2 border-slate-600 overflow-hidden mb-2.5">
+                    <div class="absolute inset-y-0 left-1/3 w-0.5 border-l-2 border-dashed border-slate-600"></div>
+                    <div class="absolute inset-y-0 left-2/3 w-0.5 border-l-2 border-dashed border-slate-600"></div>
+                    <div id="mg1-obstacles"></div>
+                    <div id="mg1-player" class="absolute bottom-2 text-2xl transition-all duration-100" style="left: 46%">${vehicleEmoji}</div>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button id="mg1-left" class="choice-btn bg-slate-700 hover:bg-slate-600 py-2 rounded-xl font-bold text-sm">⬅️ Kaliwa</button>
+                    <button id="mg1-mid" class="choice-btn bg-slate-700 hover:bg-slate-600 py-2 rounded-xl font-bold text-sm">⬆️ Gitna</button>
+                    <button id="mg1-right" class="choice-btn bg-slate-700 hover:bg-slate-600 py-2 rounded-xl font-bold text-sm">➡️ Kanan</button>
+                </div>
+            `;
+
+            const laneX = ['13%', '46%', '79%'];
+            const playerEl = document.getElementById('mg1-player');
+            const obsLayer = document.getElementById('mg1-obstacles');
+            const timerEl = document.getElementById('mg1-timer');
+
+            function setLane(l) {
+                playerLane = l;
+                if (playerEl) playerEl.style.left = laneX[playerLane];
+                playSound('pop');
+            }
+            document.getElementById('mg1-left').onclick = () => setLane(0);
+            document.getElementById('mg1-mid').onclick = () => setLane(1);
+            document.getElementById('mg1-right').onclick = () => setLane(2);
+
+            let tickCount = 0;
+            const speed = mode === 'motor' ? 6.5 : 7.5;
+            const loop = setInterval(() => {
+                tickCount++;
+                timeLeft = Math.max(0, timeLeft - 0.08);
+                if (timerEl) timerEl.textContent = `${timeLeft.toFixed(1)}s`;
+
+                if (tickCount % 9 === 0) {
+                    const rLane = Math.floor(Math.random() * 3);
+                    const icon = Math.random() > 0.5 ? '🕳️' : '🚌';
+                    obstacles.push({ lane: rLane, y: -15, icon, hit: false });
+                }
+
+                obstacles.forEach(o => {
+                    o.y += speed;
+                    if (!o.hit && o.y >= 115 && o.y <= 150 && o.lane === playerLane) {
+                        o.hit = true;
+                        hits++;
+                        playSound('damage');
+                        triggerScreenShake();
+                    }
+                });
+                obstacles = obstacles.filter(o => o.y < 180);
+
+                if (obsLayer) {
+                    obsLayer.innerHTML = obstacles.map(o =>
+                        `<div class="absolute text-xl" style="left:${laneX[o.lane]}; top:${o.y}px">${o.icon}</div>`
+                    ).join('');
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(loop);
+                    if (hits === 0) {
+                        playSound('victory');
+                        const eff = { energy: -5, sanity: +5 };
+                        applyDeltas(eff, 250);
+                        showOutcomeBox("Swabe sa highway! Walang sabit, sakto dating mo sa Perps.", eff, 250, true);
+                    } else {
+                        const penSanity = -12 * hits;
+                        const penWallet = -25 * hits;
+                        const eff = { energy: -10, sanity: penSanity, wallet: penWallet };
+                        applyDeltas(eff, 50);
+                        showOutcomeBox(`Sumabit ka nang ${hits} beses sa lubak at jeep! Nagbayad ka pa extra at nabadtrip agad.`, eff, 50, false);
+                    }
+                }
+            }, 80);
+            state.activeIntervals.push(loop);
+        }
+
+        /* ==========================================================================
+           MINI-GAME 2: "HINDI AKO LASING" PRESENTATION CHECK (3 Stages + Exact Text)
+           ========================================================================== */
+        function startMiniGame2_SoberPresentation(container) {
+            let pos = 50;
+            let dir = 1;
+            let stageNum = 1;
+            const zoneWidths = [32, 24, 18]; // Gets harder each slide!
+            const zoneStarts = [34, 38, 41];
+
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-extrabold text-amber-400">🎮 MINI-GAME 2: Pigilan ang Amats!</span>
+                    <span id="mg2-stage" class="text-xs font-bold bg-slate-800 px-2 py-0.5 rounded">Slide 1 / 3</span>
+                </div>
+                <p class="text-xs text-slate-300 mb-3">I-tap ang <strong>MAGSALITA</strong> pag nasa <span class="text-emerald-400 font-bold">GREEN ZONE</span> ang marker. Bibilis yan kada slide!</p>
+                <div class="relative w-full h-9 bg-slate-800 rounded-xl overflow-hidden border border-slate-600 mb-3">
+                    <div id="mg2-zone" class="absolute top-0 bottom-0 bg-emerald-500/40 border-x-2 border-emerald-400 flex items-center justify-center text-[10px] font-extrabold text-emerald-200" style="left: 34%; width: 32%;">
+                        COMPOSED
+                    </div>
+                    <div id="mg2-needle" class="absolute top-0 bottom-0 w-2.5 bg-amber-400 rounded-full shadow-[0_0_10px_#fbbf24]" style="left: 50%;"></div>
+                </div>
+                <button id="mg2-btn" class="choice-btn w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-display font-bold py-3 rounded-xl text-sm">
+                    🎤 MAGSALITA SA HARAP
+                </button>
+            `;
+
+            const needle = document.getElementById('mg2-needle');
+            const zoneEl = document.getElementById('mg2-zone');
+            const stageEl = document.getElementById('mg2-stage');
+
+            const loop = setInterval(() => {
+                const spd = 2.4 + stageNum * 0.85;
+                pos += dir * spd;
+                if (pos >= 96) { pos = 96; dir = -1; }
+                if (pos <= 2) { pos = 2; dir = 1; }
+                if (needle) needle.style.left = `${pos}%`;
+            }, 20);
+            state.activeIntervals.push(loop);
+
+            document.getElementById('mg2-btn').onclick = () => {
+                const zStart = zoneStarts[stageNum - 1];
+                const zEnd = zStart + zoneWidths[stageNum - 1];
+                if (pos >= zStart - 2 && pos <= zEnd + 2) {
+                    playSound('coin');
+                    if (stageNum >= 3) {
+                        clearInterval(loop);
+                        document.getElementById('scene-stage').classList.remove('drunk-effect');
+                        document.getElementById('game-avatar-mount').innerHTML = renderSebiAvatar('hyped');
+                        document.getElementById('game-avatar-mount').className = "relative z-10 w-36 h-40 sm:w-40 sm:h-44 anim-idle";
+                        const eff = { rep: +15, sanity: +10, energy: -5 };
+                        applyDeltas(eff, 350);
+                        // EXACT REQUESTED MESSAGE
+                        showOutcomeBox("YOWNCH. best panggap award. v good but dont do it again.", eff, 350, true);
+                    } else {
+                        stageNum++;
+                        stageEl.textContent = `Slide ${stageNum} / 3`;
+                        zoneEl.style.left = `${zoneStarts[stageNum - 1]}%`;
+                        zoneEl.style.width = `${zoneWidths[stageNum - 1]}%`;
+                    }
+                } else {
+                    clearInterval(loop);
+                    document.getElementById('scene-stage').classList.remove('drunk-effect');
+                    document.getElementById('game-avatar-mount').innerHTML = renderSebiAvatar('panic');
+                    const eff = { rep: -28, sanity: -22, energy: -10 };
+                    applyDeltas(eff, 0);
+                    showOutcomeBox("Nabuking ka ng prof! Utal-utal ka sa harap at naamoy pa yung Kubo session. Minus malala sa Acads at Sanity.", eff, 0, false);
+                }
+            };
+        }
+
+        /* ==========================================================================
+           MINI-GAME 3: LDR TAMPUHAN WITH KEI (Timed High-Stakes Reply)
+           ========================================================================== */
+        function startMiniGame3_LDRLambing(container) {
+            let timeLeft = 8.0;
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-extrabold text-rose-400">🎮 MINI-GAME 3: LDR Chat kay Kei!</span>
+                    <span id="mg3-timer" class="text-xs font-bold bg-rose-600 px-2 py-0.5 rounded">8.0s</span>
+                </div>
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 mb-3 text-xs">
+                    <div class="text-rose-300 font-bold mb-1">Kei (LDR):</div>
+                    <div class="text-white">"Kanina ka pa walang paramdam tapos ngayon ka lang magcha-chat??"</div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button onclick="resolveLDR('fight')" class="choice-btn bg-rose-950 hover:bg-rose-900 border border-rose-500 text-rose-200 text-xs font-bold p-2.5 rounded-xl text-left">
+                        💢 "Wag mo na ko awayin pagod na nga ko sa school eh" (Fight with Kei)
+                    </button>
+                    <button onclick="resolveLDR('lambing')" class="choice-btn bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold p-2.5 rounded-xl text-left">
+                        ❤️ "Sorry baby, kakalabas lang ng room & nag-lunch. Miss na kita, call tayo mamaya?"
+                    </button>
+                    <button onclick="resolveLDR('dry')" class="choice-btn bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold p-2.5 rounded-xl text-left">
+                        👍 "k kakain lang"
+                    </button>
+                </div>
+            `;
+
+            const timerEl = document.getElementById('mg3-timer');
+            const loop = setInterval(() => {
+                timeLeft = Math.max(0, timeLeft - 0.1);
+                if (timerEl) timerEl.textContent = `${timeLeft.toFixed(1)}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(loop);
+                    window.resolveLDR('timeout');
+                }
+            }, 100);
+            state.activeIntervals.push(loop);
+        }
+
+        window.resolveLDR = function (choice) {
+            clearAllTimers();
+            if (choice === 'lambing') {
+                playSound('victory');
+                document.getElementById('game-avatar-mount').innerHTML = renderSebiAvatar('hyped');
+                const eff = { sanity: +20, energy: +5 };
+                applyDeltas(eff, 300);
+                showOutcomeBox("Na-lambing mo si Kei! Nawala tampo niya at may pa-good luck pa sa'yo buong hapon.", eff, 300, true);
+            } else if (choice === 'fight') {
+                document.getElementById('game-avatar-mount').innerHTML = renderSebiAvatar('panic');
+                const eff = { sanity: -35, energy: -15 };
+                applyDeltas(eff, 0);
+                showOutcomeBox("FIGHT WITH KEI TRIGGERED! Nag-overthink na siya sa LDR at pareho kayong badtrip buong hapon. -35 Sanity!", eff, 0, false);
+            } else {
+                document.getElementById('game-avatar-mount').innerHTML = renderSebiAvatar('sweat');
+                const eff = { sanity: -25, energy: -10 };
+                applyDeltas(eff, 0);
+                showOutcomeBox("Sineen ka lang ni Kei nang 2 oras dahil dry/late ka mag-reply! Sobrang bigat sa dibdib.", eff, 0, false);
+            }
+        };
+
+        /* ==========================================================================
+           MINI-GAME 4: SILANG LOW-DATA GOOGLE MAPS MEMORY SEQUENCE
+           ========================================================================== */
+        function startMiniGame4_SilangMapsMemory(container) {
+            const dirs = [
+                { id: 'L', label: '⬅️ Kaliwa (Bypass)' },
+                { id: 'U', label: '⬆️ Diretso (Highway)' },
+                { id: 'R', label: '➡️ Kanan (Barangay)' }
+            ];
+            const seq = Array.from({ length: 4 }, () => dirs[Math.floor(Math.random() * dirs.length)]);
+            let userSeq = [];
+
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-extrabold text-amber-400">🎮 MINI-GAME 4: Silang Route Memory</span>
+                    <span id="mg4-status" class="text-xs font-bold bg-rose-600 px-2 py-0.5 rounded">Tandaan mo! (3s)</span>
+                </div>
+                <div id="mg4-display" class="bg-slate-800 border border-slate-600 rounded-xl p-3 text-center mb-3">
+                    <div class="text-[11px] text-slate-400 mb-1">Bago mag-freeze ang Google Maps, kabisaduhin ang 4 na liko:</div>
+                    <div class="flex flex-wrap justify-center gap-1.5">
+                        ${seq.map(s => `<span class="bg-amber-400 text-slate-950 font-extrabold text-xs px-2.5 py-1 rounded-lg">${s.label}</span>`).join('')}
+                    </div>
+                </div>
+                <div id="mg4-controls" class="hidden grid grid-cols-3 gap-2">
+                    ${dirs.map(d => `<button onclick="tapSilangDir('${d.id}')" class="choice-btn bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs py-2.5 px-2 rounded-xl">${d.label}</button>`).join('')}
+                </div>
+            `;
+
+            const tOut = setTimeout(() => {
+                const disp = document.getElementById('mg4-display');
+                const ctrl = document.getElementById('mg4-controls');
+                const stat = document.getElementById('mg4-status');
+                if (disp) disp.innerHTML = `<div class="text-rose-400 font-extrabold text-xs py-2">📡 DATA FROZEN! I-input ang 4 na liko nang sunod-sunod: <span id="mg4-progress" class="text-white">0 / 4</span></div>`;
+                if (ctrl) ctrl.classList.remove('hidden');
+                if (stat) stat.textContent = "I-input na!";
+            }, 3200);
+            state.activeIntervals.push(tOut);
+
+            window.tapSilangDir = function (dirId) {
+                playSound('pop');
+                userSeq.push(dirId);
+                const prog = document.getElementById('mg4-progress');
+                if (prog) prog.textContent = `${userSeq.length} / 4`;
+
+                const idx = userSeq.length - 1;
+                if (userSeq[idx] !== seq[idx].id) {
+                    // Wrong turn!
+                    document.getElementById('stage-static').classList.add('hidden');
+                    const eff = { energy: -20, sanity: -20, wallet: -80 };
+                    applyDeltas(eff, 0);
+                    showOutcomeBox("Naligaw ka sa Silang! Nagpaikot-ikot ka nang walang signal at napagastos pa sa pamasahe/gas.", eff, 0, false);
+                    return;
+                }
+
+                if (userSeq.length === 4) {
+                    playSound('victory');
+                    document.getElementById('stage-static').classList.add('hidden');
+                    document.getElementById('game-avatar-mount').innerHTML = renderSebiAvatar('hyped');
+                    const eff = { sanity: +10, energy: -5 };
+                    applyDeltas(eff, 350);
+                    showOutcomeBox("Sakto lahat ng liko kahit 0MB na data! Nakarating ka sa bagong venue sa Silang nang walang ligaw.", eff, 350, true);
+                }
+            };
+        }
+
+        /* ==========================================================================
+           MINI-GAME 5: RIVERVIEW ENTRANCE GUARD CHECK + NIGHT GRIND
+           ========================================================================== */
+        function startMiniGame5_RiverviewGuardAndNight(container) {
+            let timeLeft = 7.0;
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-extrabold text-amber-400">🎮 MINI-GAME 5: Guard House Papasok ng Riverview!</span>
+                    <span id="mg5-timer" class="text-xs font-bold bg-rose-600 px-2 py-0.5 rounded">7.0s</span>
+                </div>
+                <div class="bg-slate-800 p-2.5 rounded-xl border border-slate-700 mb-3 text-xs">
+                    <div class="text-amber-300 font-bold mb-1">Guard sa Gate (Papasok ng Subd):</div>
+                    <div class="text-white">"Boss, walang sticker sa harap. Saan punta mo dito sa loob ng Riverview?!"</div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <button onclick="resolveGuardGate('calm')" class="choice-btn bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold p-2.5 rounded-xl text-left">
+                        🪪 Pakita ng ID + sabihin exact block/lot & street nang kalmado
+                    </button>
+                    <button onclick="resolveGuardGate('argue')" class="choice-btn bg-rose-900 hover:bg-rose-800 border border-rose-500 text-rose-100 text-xs font-bold p-2.5 rounded-xl text-left">
+                        😤 "Araw-araw na ko dito kuya di mo pa rin ako kilala?!"
+                    </button>
+                </div>
+            `;
+
+            const timerEl = document.getElementById('mg5-timer');
+            const loop = setInterval(() => {
+                timeLeft = Math.max(0, timeLeft - 0.1);
+                if (timerEl) timerEl.textContent = `${timeLeft.toFixed(1)}s`;
+                if (timeLeft <= 0) {
+                    clearInterval(loop);
+                    window.resolveGuardGate('timeout');
+                }
+            }, 100);
+            state.activeIntervals.push(loop);
+        }
+
+        window.resolveGuardGate = function (res) {
+            clearAllTimers();
+            if (res !== 'calm') {
+                const eff = { sanity: -25, energy: -15 };
+                applyDeltas(eff, 0);
+                if (state.isGameOver) {
+                    showOutcomeBox("Na-hold ka nang 30 mins sa gate ng Riverview sa sobrang init ng ulo!", eff, 0, false);
+                    return;
+                }
+            } else {
+                playSound('coin');
+                applyDeltas({ sanity: +10 }, 250);
+            }
+
+            // Final Night Wind-Down Choice inside the same panel
+            const container = document.getElementById('minigame-container');
+            container.innerHTML = `
+                <div class="text-xs font-extrabold text-indigo-300 uppercase tracking-wider mb-1">
+                    ${res === 'calm' ? '✅ Pinapasok ka na sa Riverview! Nasa kwarto ka na.' : '😮‍💨 Nakapasok ka rin sa wakas pagkatapos ng mahabang sita.'}
+                </div>
+                <p class="text-xs text-slate-200 mb-3">Last decision bago matapos ang araw—paano magpapahinga si Sebi?</p>
+                <div class="flex flex-col gap-2">
+                    <button onclick="resolveNightGrind('pbb')" class="choice-btn bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold p-2.5 rounded-xl text-left">
+                        📺 Manood ng PBB: I-vote si Primo & i-manifest na lumabas na si Mikee (-₱15 load)
+                    </button>
+                    <button onclick="resolveNightGrind('valo')" class="choice-btn bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold p-2.5 rounded-xl text-left">
+                        🎯 Mag-Valorant Comp (Clutch 1v3!)
+                    </button>
+                    <button onclick="resolveNightGrind('chui')" class="choice-btn bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold p-2.5 rounded-xl text-left">
+                        🍜 Manood ng Chui Show mukbang habang nakahiga
+                    </button>
+                </div>
+            `;
+        };
+
+        window.resolveNightGrind = function (pick) {
+            if (pick === 'pbb') {
+                playSound('victory');
+                const eff = { sanity: +20, energy: +10, wallet: -15 };
+                applyDeltas(eff, 250);
+                showOutcomeBox("Boto kay Primo locked in! Manifesting Mikee out sa eviction night. Solid pampatulog!", eff, 250, true);
+            } else if (pick === 'valo') {
+                playSound('victory');
+                const eff = { sanity: +20, energy: -5 };
+                applyDeltas(eff, 300);
+                showOutcomeBox("ACE & 1v3 CLUTCH sa Valo! +25 RR bago matulog.", eff, 300, true);
+            } else {
+                playSound('victory');
+                const eff = { sanity: +15, energy: +20 };
+                applyDeltas(eff, 250);
+                showOutcomeBox("Busog sa mata sa Chui Show mukbang! Solid pahinga pagkatapos ng nakakapagod na araw sa Cavite.", eff, 250, true);
+            }
+        };
+
+        /* ==========================================================================
+           6. END RUN & SAVE TO SHARED LEADERBOARD
+           ========================================================================== */
+        async function finishRun(survived) {
+            clearAllTimers();
+            const finalScore = calculateCurrentScore();
+
+            document.getElementById('hud-bar').classList.add('hidden');
+            document.getElementById('screen-game').classList.add('hidden');
+            document.getElementById('screen-end').classList.remove('hidden');
+
+            let title = "";
+            if (!survived) {
+                playSound('gameover');
+                document.body.className = "sky-gameover min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('end-status-pill').className = "inline-block bg-rose-100 border border-rose-300 text-rose-800 font-display font-bold text-xs px-3 py-1 rounded-full uppercase mb-2";
+                document.getElementById('end-status-pill').textContent = "💀 GAME OVER • LIGWAK";
+                title = "LIGWAK SA ETIVAC";
+                document.getElementById('end-rank-title').textContent = title;
+                document.getElementById('end-story-summary').textContent = state.gameOverReason;
+                document.getElementById('end-avatar-mount').innerHTML = renderSebiAvatar('dead');
+            } else {
+                playSound('victory');
+                document.body.className = "sky-night min-h-screen flex flex-col items-center justify-between p-3 sm:p-5 text-slate-800";
+                document.getElementById('end-status-pill').className = "inline-block bg-emerald-100 border border-emerald-300 text-emerald-800 font-display font-bold text-xs px-3 py-1 rounded-full uppercase mb-2";
+                document.getElementById('end-status-pill').textContent = "🏆 SURVIVED THE DAY";
+
+                if (finalScore >= 2200) title = "S-TIER ETIVAC BOSS";
+                else if (finalScore >= 1650) title = "CERTIFIED GMA SURVIVOR";
+                else title = "NAKAUWI NANG BUO";
+
+                document.getElementById('end-rank-title').textContent = title;
+                document.getElementById('end-story-summary').textContent = `Nakaligtas si ${state.playerName} sa morning rush, presentation pagkatapos ng Kubo, LDR tampuhan, Silang detour, at guard sa Riverview!`;
+                document.getElementById('end-avatar-mount').innerHTML = renderSebiAvatar('hyped');
+            }
+
+            document.getElementById('end-rank-subtitle').textContent = `Player: ${state.playerName}`;
+            document.getElementById('end-total-score').textContent = finalScore.toLocaleString();
+            document.getElementById('end-energy').textContent = `${Math.max(0, state.energy)}%`;
+            document.getElementById('end-sanity').textContent = `${Math.max(0, state.sanity)}%`;
+            document.getElementById('end-rep').textContent = `${Math.max(0, state.rep)}%`;
+            document.getElementById('end-wallet').textContent = `₱${Math.max(0, state.wallet)}`;
+
+            // Check if new #1 high score
+            const prevTop = leaderboardEntries.length > 0 ? leaderboardEntries[0].score : 0;
+            const badge = document.getElementById('end-highscore-badge');
+            if (finalScore > prevTop) {
+                badge.textContent = "👑 NEW #1 HIGH SCORE RECORDED!";
+            } else {
+                badge.textContent = `✨ Score saved! Beat ${prevTop.toLocaleString()} pts for #1.`;
+            }
+
+            await saveScoreToLeaderboard(state.playerName, finalScore, title, survived);
+        }
+
+        // Initialize Avatar & Leaderboard on load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('start-avatar-mount').innerHTML = renderSebiAvatar('chill');
+            initFirebase();
+        });
+    </script>
+</body>
+</html>
